@@ -2,8 +2,7 @@ name: LinkedIn Content Generation
 
 on:
   schedule:
-    # Run at 8:00 AM UTC on Mondays and Thursdays
-    - cron: '0 8 * * 1,4'
+    - cron: '0 0 * * 1'  # Run at midnight every Monday
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
@@ -17,13 +16,14 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-        
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e .
+        cd /home/runner/work/wmarkus-agent-automation/wmarkus-agent-automation
+        pip install -e .  # Install package in development mode
         pip install -r requirements.txt
-        
+    
     - name: Generate LinkedIn content
       env:
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -31,7 +31,8 @@ jobs:
         EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         TO_EMAIL: ${{ secrets.TO_EMAIL }}
       run: |
-        python -c "import agno; print('Agno package found')"
+        cd /home/runner/work/wmarkus-agent-automation/wmarkus-agent-automation
+        python -c "import agno; print('Agno package found')"  # Verify package installation
         python linkedIN.py --save --email
         
     - name: Send email with content
