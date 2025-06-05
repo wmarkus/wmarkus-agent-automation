@@ -1,0 +1,43 @@
+name: LinkedIn Content Generation
+
+on:
+  schedule:
+    # Run at 8:00 AM UTC on Mondays and Thursdays
+    - cron: '0 8 * * 1,4'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  generate-content:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Generate LinkedIn content
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      run: |
+        python linkedIN.py --save --email ${{ secrets.TO_EMAIL }}
+        
+    - name: Send email with content
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{ secrets.FROM_EMAIL }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: LinkedIn Content for Today
+        body: file://linkedin_content/linkedin_content_ideas_$(date +%Y-%m-%d).md
+        to: ${{ secrets.TO_EMAIL }}
+        from: ${{ secrets.FROM_EMAIL }}
+        content_type: text/markdown 
